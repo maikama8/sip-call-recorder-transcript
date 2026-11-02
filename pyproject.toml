@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sip-call-recorder-transcript"
+version = "0.1.0"
+description = "Ingest Asterisk and FreePBX call recordings, transcribe them, and search the result."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Abdulrasheed Oseni" }]
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "pydantic-settings>=2.6.0",
+    "python-multipart>=0.0.12",
+    "httpx>=0.27.0",
+    "sqlalchemy>=2.0.36",
+]
+
+[project.optional-dependencies]
+local = ["faster-whisper>=1.1.0"]
+dev = ["pytest>=8.3.0", "ruff>=0.7.0", "httpx2>=2.0"]
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.setuptools.package-data]
+app = ["samples/*.txt", "static/*.html"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["app", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["B008"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "tests"]

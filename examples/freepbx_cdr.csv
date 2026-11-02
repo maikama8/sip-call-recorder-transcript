@@ -1,0 +1,2 @@
+calldate,clid,src,dst,dcontext,duration,billsec,disposition,uniqueid,linkedid,recordingfile
+2026-11-02 09:15:00,Ada Obi <1001>,1001,08031234567,from-internal,90,88,ANSWERED,1730538900.4,1730538900.4,out-08031234567-1001-20261102-091500-1730538900.4.wav

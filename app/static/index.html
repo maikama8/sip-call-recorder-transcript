@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Call recorder</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='5' fill='%230e6b4f'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      --paper: #f3efe6;
+      --card: #fffcf7;
+      --ink: #1c2421;
+      --muted: #5c675f;
+      --line: #d9d1c3;
+      --green: #0e6b4f;
+      --green-soft: #e7f3ee;
+      --amber: #8a4b12;
+      --amber-soft: #f8efe4;
+      --slate: #3e4c59;
+      --slate-soft: #eef2f4;
+      --danger: #8d2f2f;
+      --shadow: 0 1px 0 rgba(28, 36, 33, 0.04);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background: var(--paper);
+      font: 15px/1.45 "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+    button, input, select { font: inherit; color: inherit; }
+    header, main, footer { width: min(1120px, calc(100% - 32px)); margin: 0 auto; }
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-end;
+      padding: 28px 0 18px;
+    }
+    .brand { display: flex; gap: 12px; align-items: center; }
+    .led {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 4px var(--green-soft);
+    }
+    .eyebrow {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    h1 { margin: 0; font-size: 28px; font-weight: 650; letter-spacing: -0.03em; }
+    #status { margin: 0; color: var(--muted); font-size: 13px; text-align: right; }
+    .layout { display: grid; grid-template-columns: 340px 1fr; gap: 16px; align-items: start; }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+    }
+    .list-panel, .detail-panel { padding: 14px; }
+    form { display: grid; gap: 8px; }
+    label { font-size: 12px; color: var(--muted); }
+    input[type="search"], input[type="text"], input[type="file"] {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+    input:focus, button:focus { outline: 2px solid var(--green); outline-offset: 1px; }
+    .row { display: flex; gap: 8px; }
+    .row > * { flex: 1; }
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 8px 12px;
+      background: var(--green);
+      color: white;
+      cursor: pointer;
+    }
+    button.secondary { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+    button.danger { background: transparent; color: var(--danger); border: 1px solid #e4c8c8; }
+    button:disabled { opacity: 0.55; cursor: default; }
+    #list { display: grid; gap: 8px; margin: 12px 0; min-height: 80px; }
+    .call {
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 10px;
+    }
+    .call:hover, .call.active { border-color: var(--line); background: #fff; }
+    .call strong { display: block; font-weight: 650; }
+    .meta, .snippet, .notice, .empty { color: var(--muted); font-size: 13px; }
+    .meta { font-variant-numeric: tabular-nums; }
+    .snippet { margin: 6px 0 0; }
+    .upload { border-top: 1px solid var(--line); padding-top: 12px; }
+    .upload h2, .detail-panel h2 { margin: 0 0 8px; font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+    .parties { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; }
+    .parties h2 { margin: 0; font-size: 22px; letter-spacing: -0.03em; text-transform: none; color: var(--ink); }
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--slate-soft);
+      color: var(--slate);
+      font-size: 12px;
+    }
+    .summary { margin: 12px 0; }
+    audio { width: 100%; margin: 8px 0 14px; }
+    .segment {
+      display: grid;
+      grid-template-columns: 64px 1fr;
+      gap: 8px;
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      color: var(--ink);
+      border: 0;
+      border-top: 1px solid var(--line);
+      border-radius: 0;
+      padding: 10px 4px;
+    }
+    .segment time { color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+    .who { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+    .who.caller { color: var(--green); }
+    .who.callee { color: var(--amber); }
+    .who.unknown { color: var(--slate); }
+    .notice { margin-top: 12px; padding: 10px; background: var(--amber-soft); border-radius: 8px; }
+    .error { margin: 0 0 10px; color: var(--danger); font-size: 13px; }
+    footer { padding: 18px 0 32px; color: var(--muted); font-size: 12px; }
+    @media (max-width: 800px) {
+      header { flex-direction: column; align-items: flex-start; }
+      #status { text-align: left; }
+      .layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span class="led" aria-hidden="true"></span>
+      <div>
+        <p class="eyebrow">Asterisk · FreePBX</p>
+        <h1>Call recorder</h1>
+      </div>
+    </div>
+    <p id="status">Loading…</p>
+  </header>
+  <main class="layout">
+    <section class="panel list-panel">
+      <form id="search-form">
+        <label for="q">Search transcripts</label>
+        <div class="row">
+          <input id="q" type="search" placeholder="invoice, ticket, extension, uniqueid" autocomplete="off">
+          <button type="submit">Search</button>
+        </div>
+      </form>
+      <p id="error" class="error" hidden></p>
+      <div id="list"></div>
+      <form id="upload-form" class="upload">
+        <h2>Upload</h2>
+        <label for="file">Recording or .txt transcript</label>
+        <input id="file" name="file" type="file" accept="audio/*,.wav,.mp3,.gsm,.ogg,.flac,.txt" required>
+        <div class="row">
+          <input name="caller" type="text" placeholder="Caller" aria-label="Caller">
+          <input name="callee" type="text" placeholder="Callee" aria-label="Callee">
+        </div>
+        <input name="uniqueid" type="text" placeholder="Uniqueid (optional)" aria-label="Uniqueid">
+        <button type="submit">Ingest</button>
+      </form>
+    </section>
+    <section class="panel detail-panel" id="detail">
+      <p class="empty">Select a call. Transcript lines seek the audio.</p>
+    </section>
+  </main>
+  <footer>
+    Record a call only when you have a lawful basis. This page plays files already stored on this server.
+    Abdulrasheed Oseni · Zarachtech
+  </footer>
+  <script>
+    const listEl = document.getElementById("list");
+    const detailEl = document.getElementById("detail");
+    const errorEl = document.getElementById("error");
+    const statusEl = document.getElementById("status");
+    const searchForm = document.getElementById("search-form");
+    const uploadForm = document.getElementById("upload-form");
+    let selected = "";
+
+    function clearError() {
+      errorEl.hidden = true;
+      errorEl.textContent = "";
+    }
+
+    function showError(message) {
+      errorEl.hidden = false;
+      errorEl.textContent = message;
+    }
+
+    async function errorMessage(response) {
+      try {
+        const body = await response.json();
+        if (body && body.detail) {
+          return typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail);
+        }
+      } catch (_err) {
+        return "Request failed (" + response.status + ").";
+      }
+      return "Request failed (" + response.status + ").";
+    }
+
+    function clock(seconds) {
+      const total = Math.max(0, Math.floor(Number(seconds) || 0));
+      const minutes = Math.floor(total / 60);
+      const remain = total % 60;
+      return String(minutes).padStart(2, "0") + ":" + String(remain).padStart(2, "0");
+    }
+
+    function when(iso) {
+      if (!iso) return "No start time";
+      const parts = String(iso).split("T");
+      if (parts.length < 2) return String(iso);
+      return parts[0] + " " + parts[1].slice(0, 8);
+    }
+
+    function party(call) {
+      const from = call.caller_name ? call.caller_name + " " + (call.caller || "") : (call.caller || "unknown");
+      return from.trim() + " → " + (call.callee || "unknown");
+    }
+
+    function safeId(id) {
+      return /^[a-f0-9]{8,64}$/.test(id) ? id : "";
+    }
+
+    async function refreshStatus() {
+      const response = await fetch("/health");
+      if (!response.ok) {
+        statusEl.textContent = "Health check failed";
+        return;
+      }
+      const body = await response.json();
+      statusEl.textContent = body.transcription_provider + " provider · watcher " + body.watcher + " · " + body.calls + " calls";
+    }
+
+    function renderList(calls) {
+      listEl.replaceChildren();
+      if (!calls.length) {
+        const empty = document.createElement("p");
+        empty.className = "empty";
+        empty.textContent = "No calls yet. Upload a recording or drop files in the monitor directory.";
+        listEl.appendChild(empty);
+        return;
+      }
+      calls.forEach((call) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "call" + (call.id === selected ? " active" : "");
+        const title = document.createElement("strong");
+        title.textContent = party(call);
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        const bits = [when(call.started_at)];
+        if (call.direction) bits.push(call.direction);
+        if (call.disposition) bits.push(call.disposition);
+        if (call.uniqueid) bits.push(call.uniqueid);
+        meta.textContent = bits.join(" · ");
+        button.append(title, meta);
+        if (call.snippet) {
+          const snippet = document.createElement("p");
+          snippet.className = "snippet";
+          snippet.textContent = call.snippet;
+          button.appendChild(snippet);
+        }
+        button.addEventListener("click", () => openCall(call.id));
+        listEl.appendChild(button);
+      });
+    }
+
+    async function loadList() {
+      clearError();
+      const query = document.getElementById("q").value.trim();
+      const url = query ? "/search?limit=50&q=" + encodeURIComponent(query) : "/calls?limit=50";
+      const response = await fetch(url);
+      if (!response.ok) {
+        showError(await errorMessage(response));
+        return;
+      }
+      const body = await response.json();
+      renderList(body.calls || body.results || []);
+    }
+
+    function addSegment(parent, segment, audio) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "segment";
+      const time = document.createElement("time");
+      time.textContent = clock(segment.start);
+      const body = document.createElement("span");
+      const who = document.createElement("div");
+      const role = ["caller", "callee", "unknown"].includes(segment.speaker) ? segment.speaker : "unknown";
+      who.className = "who " + role;
+      who.textContent = segment.speaker;
+      const text = document.createElement("div");
+      text.textContent = segment.text;
+      body.append(who, text);
+      button.append(time, body);
+      if (audio) {
+        button.addEventListener("click", () => {
+          audio.currentTime = Number(segment.start) || 0;
+          audio.play().catch(() => {});
+        });
+      }
+      parent.appendChild(button);
+    }
+
+    async function openCall(id) {
+      const safe = safeId(id);
+      if (!safe) return;
+      selected = safe;
+      const response = await fetch("/calls/" + safe);
+      if (!response.ok) {
+        showError(await errorMessage(response));
+        return;
+      }
+      const call = await response.json();
+      detailEl.replaceChildren();
+      const parties = document.createElement("div");
+      parties.className = "parties";
+      const heading = document.createElement("h2");
+      heading.textContent = party(call);
+      parties.appendChild(heading);
+      if (call.direction) {
+        const tag = document.createElement("span");
+        tag.className = "tag";
+        tag.textContent = call.direction;
+        parties.appendChild(tag);
+      }
+      if (call.disposition) {
+        const tag = document.createElement("span");
+        tag.className = "tag";
+        tag.textContent = call.disposition;
+        parties.appendChild(tag);
+      }
+      const meta = document.createElement("p");
+      meta.className = "meta";
+      const bits = [when(call.started_at), call.filename];
+      if (call.uniqueid) bits.push("uniqueid " + call.uniqueid);
+      if (call.duration_seconds != null) bits.push(clock(call.duration_seconds));
+      meta.textContent = bits.join(" · ");
+      const summary = document.createElement("p");
+      summary.className = "summary";
+      summary.textContent = call.summary || "";
+      detailEl.append(parties, meta, summary);
+
+      let audio = null;
+      if (call.playable && call.audio_url) {
+        audio = document.createElement("audio");
+        audio.controls = true;
+        audio.preload = "metadata";
+        audio.src = call.audio_url;
+        detailEl.appendChild(audio);
+      } else {
+        const note = document.createElement("p");
+        note.className = "empty";
+        note.textContent = "No playable audio for this entry.";
+        detailEl.appendChild(note);
+      }
+
+      (call.segments || []).forEach((segment) => addSegment(detailEl, segment, audio));
+
+      if (call.notice) {
+        const notice = document.createElement("p");
+        notice.className = "notice";
+        notice.textContent = call.notice;
+        detailEl.appendChild(notice);
+      }
+
+      const actions = document.createElement("p");
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "danger";
+      remove.textContent = "Delete call";
+      remove.addEventListener("click", () => removeCall(safe));
+      actions.appendChild(remove);
+      detailEl.appendChild(actions);
+      loadList();
+    }
+
+    async function removeCall(id) {
+      if (!window.confirm("Delete this call and its audio?")) return;
+      const response = await fetch("/calls/" + id, { method: "DELETE" });
+      if (!response.ok && response.status !== 204) {
+        showError(await errorMessage(response));
+        return;
+      }
+      selected = "";
+      detailEl.replaceChildren();
+      const empty = document.createElement("p");
+      empty.className = "empty";
+      empty.textContent = "Select a call. Transcript lines seek the audio.";
+      detailEl.appendChild(empty);
+      await loadList();
+      await refreshStatus();
+    }
+
+    searchForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      loadList();
+    });
+
+    uploadForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      clearError();
+      const button = uploadForm.querySelector("button");
+      button.disabled = true;
+      try {
+        const response = await fetch("/calls", { method: "POST", body: new FormData(uploadForm) });
+        if (!response.ok) {
+          showError(await errorMessage(response));
+          return;
+        }
+        const call = await response.json();
+        uploadForm.reset();
+        await refreshStatus();
+        await openCall(call.id);
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    refreshStatus();
+    loadList();
+  </script>
+</body>
+</html>

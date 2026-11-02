@@ -1,0 +1,4 @@
+caller: Good afternoon, this is Ada from billing. I am calling about invoice 1842.
+callee: Hello Ada, this is the support desk. Invoice 1842 is still unpaid.
+caller: We will send the transfer today. Please schedule a callback on Friday if it does not clear.
+callee: Agreed. I will open ticket 5521 and call you back on Friday morning.

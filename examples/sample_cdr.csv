@@ -1,0 +1,2 @@
+accountcode,src,dst,dcontext,clid,channel,dstchannel,lastapp,lastdata,start,answer,end,duration,billsec,disposition,amaflags,uniqueid,userfield
+,1001,200,from-internal,Ada Obi <1001>,PJSIP/1001-0000001a,PJSIP/200-0000001b,Dial,"PJSIP/200,30",2026-11-02 14:30:15,2026-11-02 14:30:18,2026-11-02 14:32:40,145,142,ANSWERED,DOCUMENTATION,1730554215.23,
