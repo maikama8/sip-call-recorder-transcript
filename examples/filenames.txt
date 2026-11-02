@@ -1,0 +1,14 @@
+# FreePBX sub-record-check: type-destination-source-YYYYMMDD-HHMMSS-UNIQUEID
+internal-102-100-20250116-102939-1737016179.6.wav
+out-08031234567-1001-20261102-143015-1730554215.23.wav
+in-200-unknown-20261102-150201-1730557321.8.wav
+
+# asterisk.conf systemname=pbx01. UNIQUEID becomes {systemname}-{epoch}.{seq}
+internal-102-100-20250116-102939-pbx01-1737016179.6.wav
+
+# examples/extensions_custom.conf
+20261102-143015-1730554215.23-1001-200.wav
+20261102-143015-pbx01-1730554215.23-1001-200.wav
+
+# uniqueid only; parties come from the CDR
+1730554215.23.wav
